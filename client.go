@@ -234,10 +234,13 @@ func (co *Conn) ReadMsgHeader(hdr *Header) ([]byte, error) {
 	)
 
 	if _, ok := co.Conn.(net.PacketConn); ok {
-		if co.UDPSize >= MinMsgSize && co.UDPSize <= MaxMsgSize {
+		switch {
+		case co.UDPSize < MinMsgSize:
+			p = make([]byte, MinMsgSize)
+		case co.UDPSize > MaxMsgSize:
+			p = make([]byte, MaxMsgSize)
+		default:
 			p = make([]byte, co.UDPSize)
-		} else {
-			p = make([]byte, DefaultMsgSize)
 		}
 		n, err = co.Read(p)
 	} else {
